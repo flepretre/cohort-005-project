@@ -15,11 +15,17 @@ component a second path to forget about.
 ## Parse untrusted input with a schema
 
 Form data, search parameters and request bodies get a zod schema before the
-values reach any query. Do not read `formData.get("x") as string`. The cast
-is a lie the type checker believes.
+values reach any query, so the type checker sees what was actually checked.
 
-## Do not write `any`, and do not write `!`
+## Make the code clear instead of commenting it
 
-Both switch the type checker off at the exact point you are least sure. If a
-value can be missing, narrow it with a check. If you cannot name the type,
-the shape is wrong — fix the shape.
+When a block needs a comment to be understood, extract it into a function or
+component whose name says what the comment would have said. A comment earns
+its place only for what the code cannot say: the reason behind a choice, or
+a constraint imposed from outside.
+
+## Mechanical rules live in ESLint
+
+`eslint.config.js` enforces `any`, `!`, `as string` casts on form data,
+comments in JSX, string-literal intents, and negated conditions. The
+pre-commit hook runs it, so review need not repeat them.
