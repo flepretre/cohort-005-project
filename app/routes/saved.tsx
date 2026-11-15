@@ -1,8 +1,13 @@
+import type { ReactNode } from "react";
 import { Link } from "react-router";
 import type { Route } from "./+types/saved";
 import { db } from "~/db";
 import { requireUserId } from "~/lib/access.server";
-import { listBookmarks, listNotes } from "~/lib/saved.server";
+import {
+  listBookmarks,
+  listNotes,
+  type SavedLessonRef,
+} from "~/lib/saved.server";
 import { Card, CardContent } from "~/components/ui/card";
 import { Bookmark, NotebookPen } from "lucide-react";
 import { formatRelativeTime } from "~/lib/utils";
@@ -36,79 +41,93 @@ export default function Saved({ loaderData }: Route.ComponentProps) {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section>
-          <h2 className="mb-3 flex items-center gap-2 font-semibold">
-            <Bookmark className="size-4 text-muted-foreground" />
-            Bookmarks
-          </h2>
-
-          {savedBookmarks.length === 0 ? (
-            <Card>
-              <CardContent className="py-8 text-center text-sm text-muted-foreground">
-                No bookmarks yet.
+        <SavedSection
+          icon={<Bookmark className="size-4 text-muted-foreground" />}
+          title="Bookmarks"
+          emptyText="No bookmarks yet."
+          isEmpty={savedBookmarks.length === 0}
+        >
+          {savedBookmarks.map((bookmark) => (
+            <Card key={bookmark.id}>
+              <CardContent className="py-3">
+                <LessonLink lesson={bookmark} />
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {bookmark.courseTitle} · {bookmark.moduleTitle}
+                </p>
               </CardContent>
             </Card>
-          ) : (
-            <div className="space-y-2">
-              {savedBookmarks.map((bookmark) => (
-                <Card key={bookmark.id}>
-                  <CardContent className="py-3">
-                    <Link
-                      to={`/courses/${bookmark.courseSlug}/lessons/${bookmark.lessonId}`}
-                      className="text-sm font-medium hover:underline"
-                    >
-                      {bookmark.lessonTitle}
-                    </Link>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      {bookmark.courseTitle} · {bookmark.moduleTitle}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </section>
+          ))}
+        </SavedSection>
 
-        <section>
-          <h2 className="mb-3 flex items-center gap-2 font-semibold">
-            <NotebookPen className="size-4 text-muted-foreground" />
-            Notes
-          </h2>
-
-          {savedNotes.length === 0 ? (
-            <Card>
-              <CardContent className="py-8 text-center text-sm text-muted-foreground">
-                No notes yet.
+        <SavedSection
+          icon={<NotebookPen className="size-4 text-muted-foreground" />}
+          title="Notes"
+          emptyText="No notes yet."
+          isEmpty={savedNotes.length === 0}
+        >
+          {savedNotes.map((note) => (
+            <Card key={note.id}>
+              <CardContent className="space-y-1 py-3">
+                <LessonLink lesson={note} />
+                <p className="text-xs text-muted-foreground">
+                  {note.courseTitle}
+                </p>
+                <p className="whitespace-pre-wrap text-sm">{note.body}</p>
+                <p
+                  suppressHydrationWarning
+                  className="text-xs text-muted-foreground"
+                >
+                  Edited {formatRelativeTime(note.updatedAt)}
+                </p>
               </CardContent>
             </Card>
-          ) : (
-            <div className="space-y-2">
-              {savedNotes.map((note) => (
-                <Card key={note.id}>
-                  <CardContent className="space-y-1 py-3">
-                    <Link
-                      to={`/courses/${note.courseSlug}/lessons/${note.lessonId}`}
-                      className="text-sm font-medium hover:underline"
-                    >
-                      {note.lessonTitle}
-                    </Link>
-                    <p className="text-xs text-muted-foreground">
-                      {note.courseTitle}
-                    </p>
-                    <p className="whitespace-pre-wrap text-sm">{note.body}</p>
-                    <p
-                      suppressHydrationWarning
-                      className="text-xs text-muted-foreground"
-                    >
-                      Edited {formatRelativeTime(note.updatedAt)}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </section>
+          ))}
+        </SavedSection>
       </div>
     </div>
+  );
+}
+
+function SavedSection({
+  icon,
+  title,
+  emptyText,
+  isEmpty,
+  children,
+}: {
+  icon: ReactNode;
+  title: string;
+  emptyText: string;
+  isEmpty: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <section>
+      <h2 className="mb-3 flex items-center gap-2 font-semibold">
+        {icon}
+        {title}
+      </h2>
+
+      {isEmpty ? (
+        <Card>
+          <CardContent className="py-8 text-center text-sm text-muted-foreground">
+            {emptyText}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-2">{children}</div>
+      )}
+    </section>
+  );
+}
+
+function LessonLink({ lesson }: { lesson: SavedLessonRef }) {
+  return (
+    <Link
+      to={`/courses/${lesson.courseSlug}/lessons/${lesson.lessonId}`}
+      className="text-sm font-medium hover:underline"
+    >
+      {lesson.lessonTitle}
+    </Link>
   );
 }

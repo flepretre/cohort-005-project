@@ -109,6 +109,15 @@ export function noteTooLongMessage() {
   return `A note must be ${MAX_NOTE_LENGTH.toLocaleString("en")} characters or fewer.`;
 }
 
+/** Enough about a Lesson to link to it and name its Course. */
+export type SavedLessonRef = {
+  lessonId: number;
+  lessonTitle: string;
+  moduleTitle: string;
+  courseTitle: string;
+  courseSlug: string;
+};
+
 const lessonRef = {
   lessonId: lessons.id,
   lessonTitle: lessons.title,
